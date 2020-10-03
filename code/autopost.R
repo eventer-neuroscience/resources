@@ -2,6 +2,8 @@ library(tidyverse)
 library(googlesheets4)
 
 # helper functions -----
+
+# create_yaml() will create the content in the YAML header
 create_yaml <- function(title, authors, categories){
   yaml_break <-"---"
   tit <- paste("title:", shQuote(title))
@@ -29,6 +31,8 @@ create_yaml <- function(title, authors, categories){
   
 }
 
+
+# create_body() will create the content under the YAML header
 create_body <- function(title, image, description, authors, website, video, post_author){
   # remove all spaces in title
   title <- gsub(x = title , pattern = " ", replacement = "_")
@@ -86,6 +90,8 @@ create_body <- function(title, image, description, authors, website, video, post
   return(output)
   }
 
+
+# get_image() uses the url provided to select an image for the post, if none provided or there are errors then own image will be used.
 get_image <- function(image_link, path){
 
   # we will default to our logo when things are nasty on the image side
@@ -132,12 +138,16 @@ get_image <- function(image_link, path){
   return(filename)
 }
 
+
+# write_md() writes the actual markdown document
 write_md <- function(filename, content){
   fileConn <- file(filename)
   writeLines(content, fileConn)
   close(fileConn)
 }
 
+
+# parse_tags will pull the tags from the google form and add to the md (in YAML)
 parse_tags <- function(df){
   df %>%
     select(starts_with("Project categories")) %>%
@@ -149,14 +159,17 @@ parse_tags <- function(df){
   
 }
 
-# this is the ID
+
+# markdown writing -----
+
+# this is the ID for the google sheet (found before /edit)
 ID <- "1qF5P8RKBSiE6qyInIoTBHdq2m9o5ZnvhnGKkmaJ83uI"
 target <- read_sheet(ID)
 # this comes handy for later,
 # so that we don't add a bunch of columns when we write back
 original_columns <- names(target)
 
-# parse tags
+# appemnd 'tags' to dataframe
 target$tags <- parse_tags(target)
 # do big changes
 post_df <- target %>% 
