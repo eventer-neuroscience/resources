@@ -69,7 +69,7 @@ library(googlesheets4)
     # bind things into "description"
       description <- paste("## Model Abstract:",
                            description,
-                           "## Model Downlaod:",
+                           "## Model Download:",
                            "*ADMIN: INSERT LINK HERE*",
                            "## Author(s):",
                            "### Author & Affiliation",
