@@ -222,6 +222,10 @@ library(googlesheets4)
   # change posted to TRUE on google sheets
   # I think it is safe to overwrite directly here
 
+  # THIS SECTION NEEDS UPDATING!
+  # Currently not actually writing to TRUE, can be done manually in the meantime.
+
+
   target$posted <- str_replace_all(string = target$`Model Name`,
                                    pattern = " ", replacement = "_") %in%
     list.files("/content/post/")
