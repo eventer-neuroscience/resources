@@ -1,4 +1,8 @@
 # Prerequisites ----
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("easycsv")) install.packages("easycsv")
+if (!require("googlesheets4")) install.packages("googlesheets4")
+
 library(tidyverse)
 library(easycsv)
 library(googlesheets4)
@@ -216,7 +220,7 @@ library(googlesheets4)
            post = paste(yaml, body, sep ="\n"))
 
   # actually write
-
+  # known issue here if there's a full stop in the model name ... gsub functionality may be able to get round this, but for now just change on google sheet
   lapply(1:nrow(post_df), function(x) write_md(post_df$filename[x], post_df$post[x]))
 
   # change posted to TRUE on google sheets
