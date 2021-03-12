@@ -195,11 +195,19 @@ library(googlesheets4)
   # append 'tags' to dataframe
   target$tags <- parse_tags(target)
   # do big changes
+  
+  # check if any submissions require posting
+  if (all(target$posted,na.rm = FALSE) == TRUE) {print("All submissions posted, put your feet up")}  else {
+  # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
+    # this should now only look to post the not posted posts ... 
     filter(is.na(posted)|posted==FALSE) %>%
     mutate(
       # make filename
-      filename = gsub(x = `Model Name` , pattern = " ", replacement = "_"),
+      # remove fullstops
+      filename = gsub(x = `Model Name` , pattern = "\\.", replacement = "_"),
+      # then remove spaces
+      filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
     # we could have repeated posts maybe worth to check in the future
     # distinct()
@@ -219,8 +227,7 @@ library(googlesheets4)
              social = `Twitter Handle`),
            post = paste(yaml, body, sep ="\n"))
 
-  # actually write
-  # known issue here if there's a full stop in the model name ... gsub functionality may be able to get round this, but for now just change on google sheet
+  # actually write the md
   lapply(1:nrow(post_df), function(x) write_md(post_df$filename[x], post_df$post[x]))
 
   # change posted to TRUE on google sheets
@@ -236,4 +243,16 @@ library(googlesheets4)
 
   # overwrite the original!
   write_sheet(target %>% select(original_columns),ss = ID, sheet=1)
+  
+  }
 
+  # USER NOW REQUIRED TO ...
+        # TRANSFER MODEL TO GOOGLE DRIVE, 
+        # ADD LINK TO INDEX.MD
+        # SET ALL TO POSTED IN GOOGLE SHEETS
+        # CHECK ON LOCAL HOST
+        # COMMIT TO GITHUB
+  
+  
+  #if bug in lapply, unmute the following line
+  #file.path(getwd(),post_df$filename[1])
