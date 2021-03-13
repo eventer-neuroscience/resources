@@ -203,10 +203,10 @@ library(googlesheets4)
     # this should now only look to post the not posted posts ... 
     filter(is.na(posted)|posted==FALSE) %>%
     mutate(
-      # make filename
-      # remove fullstops
+      # make filename (note that gsub is not vectorised, whilst str_replace_all is)
+      # remove fullstops 
       filename = gsub(x = `Model Name` , pattern = "\\.", replacement = "_"),
-      # then remove spaces
+      # then replace spaces with underscores
       filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
     # we could have repeated posts maybe worth to check in the future
@@ -230,16 +230,16 @@ library(googlesheets4)
   # actually write the md
   lapply(1:nrow(post_df), function(x) write_md(post_df$filename[x], post_df$post[x]))
 
-  # change posted to TRUE on google sheets
-  # I think it is safe to overwrite directly here
-
-  # THIS SECTION NEEDS UPDATING!
-  # Currently not actually writing to TRUE, can be done manually in the meantime.
-
-
-  target$posted <- str_replace_all(string = target$`Model Name`,
+  # create filename variable that's manipulated in the same way as the foldernames 
+  # this may be partially redundant as variable may be spat out in the above chunk
+  filename = gsub(x = target$`Model Name` , pattern = "\\.", replacement = "_")
+  filename = gsub(x = filename , pattern = " ", replacement = "_")
+  
+  # check whether a folder exists for the new models (relative to the above filename)
+  target$posted <- str_replace_all(string = filename,
                                    pattern = " ", replacement = "_") %in%
-    list.files("/content/post/")
+    list.files("content/post/")  
+  
 
   # overwrite the original!
   write_sheet(target %>% select(original_columns),ss = ID, sheet=1)
@@ -249,7 +249,6 @@ library(googlesheets4)
   # USER NOW REQUIRED TO ...
         # TRANSFER MODEL TO GOOGLE DRIVE, 
         # ADD LINK TO INDEX.MD
-        # SET ALL TO POSTED IN GOOGLE SHEETS
         # CHECK ON LOCAL HOST
         # COMMIT TO GITHUB
   
