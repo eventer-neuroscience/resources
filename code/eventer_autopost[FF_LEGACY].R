@@ -46,17 +46,12 @@ library(googlesheets4)
                          description,
                          authors,
                          post_author,
-                         institution,
                          prep,
-                         rec_type,
-                         cell_type,
                          temp,
                          intra,
                          extra,
                          contact,
-                         social,
-                         model_dl,
-                         presets_dl){
+                         social){
     # remove all spaces in title
     title <- gsub(x = title , pattern = " ", replacement = "_")
     # remove all other punctuation things
@@ -79,14 +74,10 @@ library(googlesheets4)
       description <- paste("## Model Abstract:",
                            description,
                            "## Model Download:",
-                           "[Download Model](",model_dl,")",
-                           "## Presets Download:",
-                           "[Download Presets](",presets_dl,")",
+                           "*ADMIN: INSERT LINK HERE*",
                            "## Author(s):",
-                           "### Author",
+                           "### Author & Affiliation",
                            authors,
-                           "### Affiliation",
-                           institution,
                            "### Contact",
                            contact,
                            "### Twitter",
@@ -94,10 +85,6 @@ library(googlesheets4)
                            "## Experimental Methodology:",
                            "### Preparation",
                            prep,
-                           "### Recording Type",
-                           rec_type,
-                           "### Cell Type", 
-                           cell_type,
                            "### Recording Temperature (celsius)",
                            temp,
                            "### Intracellular Solution",
@@ -179,9 +166,9 @@ library(googlesheets4)
 # parse_tags will pull the tags from the google form and add to the md (in YAML)
   parse_tags <- function(df){
     df %>%
-      select(starts_with(c("Preparation","Recording Type"))) %>%
+      select(starts_with("Descriptive tags")) %>%
       group_by(row=row_number()) %>%
-      pivot_longer(cols = starts_with(c("Preparation","Recording Type"))) %>%
+      pivot_longer(cols = starts_with("Descriptive")) %>%
       filter(value != "NA") %>%
       summarise(categories = paste(shQuote(value), collapse=",")) %>%
       pull(categories)
@@ -198,7 +185,7 @@ library(googlesheets4)
   filePath <- getwd()
 
   # this is the ID for the google sheet (found before /edit)
-  ID <- "1HU5XmPhl5c0fyrpy7xPcLRfm4sFAjYFAtG5P81Bpx7c"
+  ID <- "1YguG_-nif4dyvxzHX6HyeNIeqyM7FSpyyKSKj9yVYrk"
   target <- read_sheet(ID)
 
   # this comes handy for later,
@@ -210,7 +197,7 @@ library(googlesheets4)
   # do big changes
   
   # check if any submissions require posting
-  if (any(target$posted,na.rm = FALSE) != TRUE) {print("All submissions posted, put your feet up")}  else {
+  if (all(target$posted,na.rm = FALSE) == TRUE) {print("All submissions posted, put your feet up")}  else {
   # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
     # this should now only look to post the not posted posts ... 
@@ -218,7 +205,7 @@ library(googlesheets4)
     mutate(
       # make filename (note that gsub is not vectorised, whilst str_replace_all is)
       # remove fullstops 
-      filename = gsub(x = `Model Name` , pattern = "[[:punct:]]", replacement = "_"),
+      filename = gsub(x = `Model Name` , pattern = "\\.", replacement = "_"),
       # then replace spaces with underscores
       filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
@@ -226,23 +213,18 @@ library(googlesheets4)
     # distinct()
     # we need to apply the functions rowwise
     rowwise() %>%
-    mutate(yaml = create_yaml(`Model Name`, `Experimenter(s)`, tags),
+    mutate(yaml = create_yaml(`Model Name`, `Experimenter & Institution`, tags),
            body = create_body(
              title = `Model Name`,
              description = `Model Description`,
              prep = `Preparation`,
-             cell_type = `Cell Type`,
-             rec_type = `Recording Type`,
              temp = `Recording Temperature (celsius)`,
              intra = `Intracellular Solution`,
              extra = `Extracellular Solution`,
-             authors = `Experimenter(s)`,
-             post_author = `Experimenter(s)`,
-             institution = `Institution(s)`,
+             authors = `Experimenter & Institution`,
+             post_author = `Experimenter & Institution`,
              contact = `Contact email`,
-             social = `Twitter Handle`,
-             model_dl = `Upload your model`,
-             presets_dl = `Upload your presets`),
+             social = `Twitter Handle`),
            post = paste(yaml, body, sep ="\n"))
 
   # actually write the md
@@ -250,7 +232,7 @@ library(googlesheets4)
 
   # create filename variable that's manipulated in the same way as the foldernames 
   # this may be partially redundant as variable may be spat out in the above chunk
-  filename = gsub(x = target$`Model Name` , pattern = "[[:punct:]]", replacement = "_")
+  filename = gsub(x = target$`Model Name` , pattern = "\\.", replacement = "_")
   filename = gsub(x = filename , pattern = " ", replacement = "_")
   
   # check whether a folder exists for the new models (relative to the above filename)
