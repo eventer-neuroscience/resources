@@ -210,7 +210,7 @@ library(googlesheets4)
   # do big changes
   
   # check if any submissions require posting
-  if (all(target$posted,na.rm = FALSE) == TRUE) {print("All submissions posted, put your feet up")}  else {
+  if (any(target$posted,na.rm = FALSE) != TRUE) {print("All submissions posted, put your feet up")}  else {
   # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
     # this should now only look to post the not posted posts ... 
@@ -218,7 +218,7 @@ library(googlesheets4)
     mutate(
       # make filename (note that gsub is not vectorised, whilst str_replace_all is)
       # remove fullstops 
-      filename = gsub(x = `Model Name` , pattern = "\\.", replacement = "_"),
+      filename = gsub(x = `Model Name` , pattern = "[[:punct:]]", replacement = "_"),
       # then replace spaces with underscores
       filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
@@ -250,7 +250,7 @@ library(googlesheets4)
 
   # create filename variable that's manipulated in the same way as the foldernames 
   # this may be partially redundant as variable may be spat out in the above chunk
-  filename = gsub(x = target$`Model Name` , pattern = "\\.", replacement = "_")
+  filename = gsub(x = target$`Model Name` , pattern = "[[:punct:]]", replacement = "_")
   filename = gsub(x = filename , pattern = " ", replacement = "_")
   
   # check whether a folder exists for the new models (relative to the above filename)
