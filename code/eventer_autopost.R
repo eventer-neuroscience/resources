@@ -194,7 +194,19 @@ library(googlesheets4)
 
   }
 
-
+  # random string generator will be the UID for the file
+  makeRandomString <- function(n=1, lenght=12)
+  {
+    randomString <- c(1:n) # initialize vector
+    for (i in 1:n)
+    {
+      randomString[i] <- paste( c(sample(c(letters, LETTERS), 1),
+                                  sample(c(0:9, letters, LETTERS),
+                                         lenght - 1, replace=TRUE)),
+                                collapse="", sep="")
+    }
+    return(randomString)
+  }
 
 # Write index.md -----
 
@@ -218,6 +230,10 @@ library(googlesheets4)
   # check if any submissions require posting - is this skipping if there's a false entry?
   #if (any(target$posted,na.rm = FALSE) != "TRUE") {
   
+  # check if this random number exists and repeat if so
+  rs <- "Example_Model"
+  while (rs %in% list.files("content/post/") == TRUE) { rs <- makeRandomString() } 
+  
   # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
     # this should now only look to post the not posted posts ... 
@@ -229,6 +245,7 @@ library(googlesheets4)
       # then replace spaces with underscores
       filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
+      # filename = file.path("content/post", rs, "index.md")) %>%
     # we could have repeated posts maybe worth to check in the future
     # distinct()
     # we need to apply the functions rowwise
@@ -277,7 +294,7 @@ library(googlesheets4)
         # CHECK ON LOCAL HOST
         # Change the published to `true` in the YAML front matter
         # COMMIT TO GITHUB
-  
-  
+
+
   #if bug in lapply, unmute the following line
   #file.path(getwd(),post_df$filename[1])
