@@ -270,15 +270,13 @@ library(googlesheets4)
 
 ## DEVELOPMENT
 
-# this will change the folder name to the new rs identifier
-
-  x <- readline("Send automated email confirmation of post uploading? (Y/N): ")
+#  x <- readline("Send automated email confirmation of post uploading? (Y/N): ")
 
 
-  if (x == "Y") {
+#  if (x == "Y") {
     print("Email sent")
   } else {
-    print("Email not sent")
-    }
+#    print("Email not sent")
+#    }
   #if bug in lapply, unmute the following line
   #file.path(getwd(),post_df$filename[1])
