@@ -278,5 +278,6 @@ library(googlesheets4)
   } else {
 #    print("Email not sent")
 #    }
-  #if bug in lapply, unmute the following line
-  #file.path(getwd(),post_df$filename[1])
+#if bug in lapply, unmute the following line
+#file.path(getwd(),post_df$filename[1])
+
