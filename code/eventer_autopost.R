@@ -1,10 +1,8 @@
 # Prerequisites ----
 if (!require("tidyverse")) install.packages("tidyverse")
-if (!require("easycsv")) install.packages("easycsv")
 if (!require("googlesheets4")) install.packages("googlesheets4")
 
 library(tidyverse)
-library(easycsv)
 library(googlesheets4)
 
 # NOTE: Adapted from open-neuroscience's autopost.R adapted for use with Eventer
@@ -65,11 +63,12 @@ library(googlesheets4)
                          DOI,
                          UID){
     # remove all spaces in title
-    title <- gsub(x = title , pattern = " ", replacement = "_")
+    #title <- gsub(x = title , pattern = " ", replacement = "_")
     # remove all other punctuation things
-    title <- stringr::str_replace_all(string = title,
-                                      pattern="[[:punct:]]",
-                                      replacement="_")
+    #title <- stringr::str_replace_all(string = title,
+                                      #pattern="[[:punct:]]",
+                                      #replacement="_")
+    title <- UID
     # make folder on posts if it doesn't exist
     root = "content/post"
     if(title %in% list.files(root) == FALSE){
@@ -149,25 +148,8 @@ library(googlesheets4)
 
   }
 
-  # random string generator will be the UID for the file
-  makeRandomString <- function(n=1, lenght=12)
-  {
-    randomString <- c(1:n) # initialize vector
-    for (i in 1:n)
-    {
-      randomString[i] <- paste( c(sample(c(letters), 1),
-                                  sample(c(0:9, letters),
-                                         lenght - 1, replace=TRUE)),
-                                collapse="", sep="")
-    }
-    return(randomString)
-  }
-
 # Write index.md -----
-
-  # set wd to root of desired website (i think OS independent)
-  setwd(easycsv::choose_dir())
-  # get the new file path
+  # get the file path (ensure .Rproj opened before entering here)
   filePath <- getwd()
 
   # this is the ID for the google sheet (found before /edit)
@@ -187,7 +169,7 @@ library(googlesheets4)
 
   # check if this random number exists and repeat if so
   rs <- "Example_Model"
-  while (rs %in% list.files("content/post/") == TRUE) { rs <- makeRandomString() }
+  while (rs %in% list.files("content/post/") == TRUE) { rs <- stringi::stri_rand_strings(n=1, length=12, "[a-z0-9]") }
 
   # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
@@ -196,7 +178,7 @@ library(googlesheets4)
     mutate(
       # make filename (note that gsub is not vectorised, whilst str_replace_all is)
       # remove fullstops
-      filename = gsub(x = `Model Name` , pattern = "[[:punct:]]", replacement = "_"),
+      filename = gsub(x = rs , pattern = "[[:punct:]]", replacement = "_"),
       # then replace spaces with underscores
       filename = gsub(x = filename , pattern = " ", replacement = "_"),
       filename = file.path("content/post", filename, "index.md")) %>%
@@ -231,31 +213,25 @@ library(googlesheets4)
 
   # create filename variable that's manipulated in the same way as the foldernames
   # this may be partially redundant as variable may be spat out in the above chunk
-  filename = gsub(x = post_df$`Model Name` , pattern = "[[:punct:]]", replacement = "_")
-  filename = gsub(x = filename , pattern = " ", replacement = "_")
+
+
+  # NOW NO NEED TO CHANGE THE FOLDERNAME
+  #filename = gsub(x = post_df$`Model Name` , pattern = "[[:punct:]]", replacement = "_")
+  #filename = gsub(x = filename , pattern = " ", replacement = "_")
 
   # check whether a folder exists for the new models (relative to the above filename)
   #target$posted <- str_replace_all(string = filename,
                                    #pattern = " ", replacement = "_") %in%
     #list.files("content/post/")
 
-  # change folder name to UID (this will show up in the URL for the model now)
-  system(paste('mv',
-               # old foldername
-               file.path(filePath, "content/post", filename),
-               # new foldername
-               file.path(filePath, "content/post", rs)
-  ))
-
-
-  # check whether the model is posted (created in the directory)
+  #file.rename(file.path(filePath, "content/post", filename),
+  #            file.path(filePath, "content/post", rs))
 
   post_df$UID <- rs # assign UID of the post
   target$UID[length(target$UID)] <- rs # change the last value to match the UID
   target$posted <- str_replace_all(string = target$UID,
                                    pattern = " ", replacement = "_") %in%
     list.files("content/post/")
-
 
   # overwrite the original!
   write_sheet(target %>% select(original_columns),ss = ID, sheet=1)
@@ -275,8 +251,8 @@ library(googlesheets4)
 
 
 #  if (x == "Y") {
-    print("Email sent")
-  } else {
+#    print("Email sent")
+#  } else {
 #    print("Email not sent")
 #    }
 #if bug in lapply, unmute the following line
