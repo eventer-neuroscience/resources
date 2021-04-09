@@ -209,19 +209,6 @@ library(googlesheets4)
   # create filename variable that's manipulated in the same way as the foldernames
   # this may be partially redundant as variable may be spat out in the above chunk
 
-
-  # NOW NO NEED TO CHANGE THE FOLDERNAME
-  #filename = gsub(x = post_df$`Model Name` , pattern = "[[:punct:]]", replacement = "_")
-  #filename = gsub(x = filename , pattern = " ", replacement = "_")
-
-  # check whether a folder exists for the new models (relative to the above filename)
-  #target$posted <- str_replace_all(string = filename,
-                                   #pattern = " ", replacement = "_") %in%
-    #list.files("content/post/")
-
-  #file.rename(file.path(filePath, "content/post", filename),
-  #            file.path(filePath, "content/post", rs))
-
   post_df$UID <- rs # assign UID of the post
   target$UID[length(target$UID)] <- rs # change the last value to match the UID
   target$posted <- str_replace_all(string = target$UID,
@@ -231,8 +218,6 @@ library(googlesheets4)
   # overwrite the original!
   write_sheet(target %>% select(original_columns),ss = ID, sheet=1)
 
-  # taking too much time to fix this now, so removed for the time being
-  #} else {print("All submissions posted, put your feet up")}
 
   # USER NOW REQUIRED TO ...
         # CHECK ON LOCAL HOST
