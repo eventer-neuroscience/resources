@@ -156,6 +156,9 @@ library(googlesheets4)
   ID <- "1HU5XmPhl5c0fyrpy7xPcLRfm4sFAjYFAtG5P81Bpx7c"
   target <- read_sheet(ID)
 
+  # create a back up in case I somehow ruin everything later on ...
+  backup_target <- target
+
   # this comes handy for later,
   # so that we don't add a bunch of columns when we write back
   original_columns <- names(target)
@@ -169,15 +172,23 @@ library(googlesheets4)
 
   # check if this random number exists and repeat if so
   rs <- "Example_Model"
-  while (rs %in% list.files("content/post/") == TRUE) { rs <- stringi::stri_rand_strings(n=1, length=12, "[a-z0-9]") }
+  n_NA <- sum(is.na(target$UID)) # number of NA values in target$UID (equivalent to unposted)
+  i_NA <- which(is.na(target$UID)) # index of NA values (less explosive than "last two" etc)
+  file_names <- list.files("content/post/")
+  # create for loop adding checked UID's to the file_names variable we just assigned
+  # as this isn't sorted, we can use tails later in "filename = file.path("content/post", tail(file_names,n_NA), "index.md"))"
+  for (i in 1:n_NA) {
+  while (rs %in% file_names == TRUE) { rs <- stringi::stri_rand_strings(n=1, length=12, "[a-z0-9]") }
+    file_names <- c(file_names, rs)
+    target$UID[i_NA[i]] <- rs
+  }
 
   # post_df simply won't be created if there's no values with FALSE
   post_df <- target %>%
     # this should now only look to post the not posted posts ...
     filter(is.na(posted)|posted==FALSE) %>%
     mutate(
-      filename = file.path("content/post", rs, "index.md")) %>%
-      # filename = file.path("content/post", rs, "index.md")) %>%
+      filename = file.path("content/post", tail(file_names,n_NA), "index.md")) %>%
     # we could have repeated posts maybe worth to check in the future
     # distinct()
     # we need to apply the functions rowwise
@@ -200,17 +211,13 @@ library(googlesheets4)
              model_dl = `Upload your model`,
              presets_dl = `Upload your presets`,
              DOI = `Related DOI`,
-             UID = rs),
+             UID = `UID`),
            post = paste(yaml, body, sep ="\n"))
 
   # actually write the md
   lapply(1:nrow(post_df), function(x) write_md(post_df$filename[x], post_df$post[x]))
 
-  # create filename variable that's manipulated in the same way as the foldernames
-  # this may be partially redundant as variable may be spat out in the above chunk
-
-  post_df$UID <- rs # assign UID of the post
-  target$UID[length(target$UID)] <- rs # change the last value to match the UID
+  # check whether folder and assign posted to TRUE
   target$posted <- str_replace_all(string = target$UID,
                                    pattern = " ", replacement = "_") %in%
     list.files("content/post/")
@@ -223,18 +230,3 @@ library(googlesheets4)
         # CHECK ON LOCAL HOST
         # Change the published to `true` in the YAML front matter
         # COMMIT TO GITHUB
-
-
-## DEVELOPMENT
-
-#  x <- readline("Send automated email confirmation of post uploading? (Y/N): ")
-
-
-#  if (x == "Y") {
-#    print("Email sent")
-#  } else {
-#    print("Email not sent")
-#    }
-#if bug in lapply, unmute the following line
-#file.path(getwd(),post_df$filename[1])
-
