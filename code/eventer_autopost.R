@@ -176,12 +176,7 @@ library(googlesheets4)
     # this should now only look to post the not posted posts ...
     filter(is.na(posted)|posted==FALSE) %>%
     mutate(
-      # make filename (note that gsub is not vectorised, whilst str_replace_all is)
-      # remove fullstops
-      filename = gsub(x = rs , pattern = "[[:punct:]]", replacement = "_"),
-      # then replace spaces with underscores
-      filename = gsub(x = filename , pattern = " ", replacement = "_"),
-      filename = file.path("content/post", filename, "index.md")) %>%
+      filename = file.path("content/post", rs, "index.md")) %>%
       # filename = file.path("content/post", rs, "index.md")) %>%
     # we could have repeated posts maybe worth to check in the future
     # distinct()
